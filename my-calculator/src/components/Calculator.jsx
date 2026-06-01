@@ -215,6 +215,29 @@ function ConversionPanel({ theme, onLiveResult, onResultCopy }) {
     event.preventDefault();
   };
 
+  const appendValue = (next) => {
+    setValue((prev) => {
+      const current = String(prev);
+      if (current === "Error") return next;
+      if (next === ".") {
+        if (current.includes(".")) return current;
+        return current ? `${current}.` : "0.";
+      }
+      if (current === "0") return next;
+      return `${current}${next}`;
+    });
+  };
+
+  const clearValue = () => {
+    setValue("");
+  };
+
+  const forceRecalculate = () => {
+    if (!derived.error) {
+      onResultCopy(`${formatNumber(derived.forward)} ${unitLabels[to]}`);
+    }
+  };
+
   return (
     <div className={`rounded-2xl border p-4 shadow-sm ${theme === "dark" ? "border-slate-700 bg-[#2d3548] text-white" : "border-slate-200 bg-white text-slate-900"}`}>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_0.9fr_0.9fr]">
@@ -277,22 +300,57 @@ function ConversionPanel({ theme, onLiveResult, onResultCopy }) {
       </div>
 
       <div className="mt-4 rounded-2xl border border-dashed border-slate-400/40 p-4">
-        {error ? (
+          {error ? (
           <div className="text-lg font-semibold text-red-500">Error</div>
         ) : (
           <>
-              <div className="text-sm opacity-70">Resultado en tiempo real</div>
+            <div className="text-sm opacity-70">Resultado en tiempo real</div>
             <button
               type="button"
-                onClick={() => derived.forward !== undefined && onResultCopy(`${formatNumber(derived.forward)} ${unitLabels[to]}`)}
+              onClick={() => derived.forward !== undefined && onResultCopy(`${formatNumber(derived.forward)} ${unitLabels[to]}`)}
               className="mt-2 block w-full text-left text-3xl font-bold tracking-tight"
               title="Copiar resultado"
             >
-                {formatNumber(derived.forward)} {unitLabels[to]}
+              {formatNumber(derived.forward)} {unitLabels[to]}
             </button>
-              <div className="mt-2 text-sm opacity-75">Invertido: {formatNumber(derived.backward)} {unitLabels[from]}</div>
+            <div className="mt-2 text-sm opacity-75">Invertido: {formatNumber(derived.backward)} {unitLabels[from]}</div>
           </>
         )}
+      </div>
+
+      <div className="mt-4">
+        <div className="mb-3 text-sm uppercase tracking-[0.2em] opacity-70">Teclado</div>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            "7", "8", "9",
+            "4", "5", "6",
+            "1", "2", "3",
+            "0", ".",
+          ].map((key) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => appendValue(key)}
+              className={`rounded-2xl border px-3 py-4 font-semibold transition-all duration-100 active:scale-95 active:brightness-110 focus:outline-none focus:ring-2 focus:ring-sky-400/70 ${theme === "dark" ? "bg-white text-[#1a1a1a] border-[#ddd] hover:bg-slate-50" : "bg-white text-[#000000] border-[#ccc] hover:bg-slate-100"}`}
+            >
+              {key}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={clearValue}
+            className="rounded-2xl border px-3 py-4 font-semibold transition-all duration-100 active:scale-95 active:brightness-110 focus:outline-none focus:ring-2 focus:ring-sky-400/70 bg-sky-400 text-white border-sky-400 hover:bg-sky-300"
+          >
+            C
+          </button>
+          <button
+            type="button"
+            onClick={forceRecalculate}
+            className="rounded-2xl border px-3 py-4 font-semibold transition-all duration-100 active:scale-95 active:brightness-110 focus:outline-none focus:ring-2 focus:ring-sky-400/70 bg-sky-400 text-white border-sky-400 hover:bg-sky-300"
+          >
+            =
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -621,25 +679,27 @@ export default function Calculator() {
             <div className={`rounded-3xl border p-5 shadow-inner ${themeClasses.display}`} onClick={() => input && copyText(input)} role="button" tabIndex={0} title="Click para copiar resultado">
               <div className={`mb-2 text-sm uppercase tracking-[0.2em] ${themeClasses.displaySecondary}`}>{mode.toUpperCase()}</div>
               <div className="flex min-h-[88px] flex-col justify-center">
-                <div className={`min-h-[24px] text-right text-sm ${themeClasses.displaySecondary}`}>
-                  {pendingDisplay.left ? `${pendingDisplay.left} ${pendingDisplay.op}` : displayError || ""}
-                </div>
-                <div className={`text-right text-4xl font-bold leading-tight md:text-6xl ${theme === "dark" ? "text-white" : "text-black"}`}>
-                  {mode === "conversion" && calcStatus?.error
-                    ? "Error"
-                    : mode === "conversion" && calcStatus?.result
-                      ? calcStatus.result
+                  <div className={`min-h-[24px] text-right text-sm ${themeClasses.displaySecondary}`}>
+                    {mode === "conversion"
+                      ? calcStatus?.expression || ""
+                      : pendingDisplay.left
+                        ? `${pendingDisplay.left} ${pendingDisplay.op}`
+                        : displayError || ""}
+                  </div>
+                  <div className={`text-right text-4xl font-bold leading-tight md:text-6xl ${theme === "dark" ? "text-white" : "text-black"}`}>
+                    {mode === "conversion"
+                      ? (calcStatus?.error ? "Error" : calcStatus?.result || "0")
                       : input || "0"}
-                </div>
-                {mode === "conversion" && calcStatus?.reverse ? (
-                  <div className={`mt-2 text-right text-sm ${themeClasses.displaySecondary}`}>{calcStatus.reverse}</div>
-                ) : null}
+                  </div>
+                  {mode === "conversion" && calcStatus?.reverse ? (
+                    <div className={`mt-2 text-right text-sm ${themeClasses.displaySecondary}`}>{calcStatus.reverse}</div>
+                  ) : null}
               </div>
               {copied ? <div className="mt-2 text-right text-xs text-emerald-500">Copiado</div> : null}
             </div>
 
             {mode === "conversion" ? (
-              <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+              <div className="grid gap-4 lg:grid-cols-1">
                 <ConversionPanel
                   theme={theme}
                   onLiveResult={(status) => {
@@ -657,40 +717,6 @@ export default function Calculator() {
                   }}
                   onResultCopy={(text) => copyText(text)}
                 />
-
-                <div className={`rounded-2xl border p-4 ${themeClasses.panel}`}>
-                  <div className="mb-3 text-sm uppercase tracking-[0.2em] opacity-70">Teclado</div>
-                  <div className="grid grid-cols-3 gap-3">
-                    {["7", "8", "9", "4", "5", "6", "1", "2", "3", "0", ".", "C", "="]
-                      .map((label) => {
-                        if (label === "C") {
-                          return (
-                            <button key={label} onClick={handleClear} className={buttonClass("danger")} style={buttonTextStyle("danger")}>
-                              C
-                            </button>
-                          );
-                        }
-                        if (label === "=") {
-                          return (
-                            <button key={label} onClick={handleEqual} className={buttonClass("accent")} style={buttonTextStyle("accent")}>
-                              =
-                            </button>
-                          );
-                        }
-                        const kind = label === "." || /^\d$/.test(label) ? "number" : "operator";
-                        return (
-                          <button
-                            key={label}
-                            onClick={() => handleButtonClick(label)}
-                            className={buttonClass(kind)}
-                            style={buttonTextStyle(kind)}
-                          >
-                            {label}
-                          </button>
-                        );
-                      })}
-                  </div>
-                </div>
               </div>
             ) : (
               <>
