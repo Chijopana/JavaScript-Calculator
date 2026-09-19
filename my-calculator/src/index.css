@@ -1,68 +1,132 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import "tailwindcss";
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+/*
+  Sistema de color por tokens.
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  Antes cada botón llevaba dos cadenas de clases (una para claro y otra para
+  oscuro) repartidas por todo el JSX, más un `style` en línea con el color del
+  texto que peleaba con Tailwind. Ahora el tema se cambia en un único sitio:
+  `data-theme` en <html>.
+*/
+@theme inline {
+  --color-app: var(--c-app);
+  --color-surface: var(--c-surface);
+  --color-elevated: var(--c-elevated);
+  --color-ink: var(--c-ink);
+  --color-muted: var(--c-muted);
+  --color-line: var(--c-line);
+  --color-key: var(--c-key);
+  --color-key-hover: var(--c-key-hover);
+  --color-keyalt: var(--c-keyalt);
+  --color-keyalt-hover: var(--c-keyalt-hover);
+  --color-op: var(--c-op);
+  --color-op-ink: var(--c-op-ink);
+  --color-op-hover: var(--c-op-hover);
+  --color-brand: var(--c-brand);
+  --color-brand-ink: var(--c-brand-ink);
+  --color-brand-hover: var(--c-brand-hover);
+  --color-danger: var(--c-danger);
+  --color-ok: var(--c-ok);
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+:root,
+[data-theme="light"] {
+  --c-app: #eef2f8;
+  --c-surface: #ffffff;
+  --c-elevated: #f6f8fc;
+  --c-ink: #0f172a;
+  --c-muted: #5b6b85;
+  --c-line: #dde5f0;
+  --c-key: #ffffff;
+  --c-key-hover: #eef2f8;
+  --c-keyalt: #e6ecf5;
+  --c-keyalt-hover: #d8e2f0;
+  --c-op: #dbeafe;
+  --c-op-ink: #1d4ed8;
+  --c-op-hover: #c7dcfd;
+  --c-brand: #1d4ed8;
+  --c-brand-ink: #ffffff;
+  --c-brand-hover: #1e40af;
+  --c-danger: #be123c;
+  --c-ok: #047857;
+  --c-glow: rgba(29, 78, 216, 0.12);
 }
-a:hover {
-  color: #535bf2;
+
+[data-theme="dark"] {
+  --c-app: #070b14;
+  --c-surface: #111a2b;
+  --c-elevated: #18233a;
+  --c-ink: #f1f5f9;
+  --c-muted: #93a4c0;
+  --c-line: #243149;
+  --c-key: #1b2739;
+  --c-key-hover: #26344b;
+  --c-keyalt: #26334a;
+  --c-keyalt-hover: #32425d;
+  --c-op: #14364f;
+  --c-op-ink: #7dd3fc;
+  --c-op-hover: #1b4664;
+  --c-brand: #38bdf8;
+  --c-brand-ink: #062334;
+  --c-brand-hover: #7dd3fc;
+  --c-danger: #fb7185;
+  --c-ok: #34d399;
+  --c-glow: rgba(56, 189, 248, 0.16);
+}
+
+html,
+body,
+#root {
+  height: 100%;
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
-  min-height: 100vh;
+  background-color: var(--c-app);
+  color: var(--c-ink);
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 200ms ease, color 200ms ease;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* Halo de color detrás de la tarjeta, distinto en cada tema. */
+#root {
+  background-image: radial-gradient(60rem 40rem at 50% -10%, var(--c-glow), transparent 70%);
 }
 
+/* Los dígitos no deben bailar de ancho mientras cambia el resultado. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--c-brand);
+  outline-offset: 2px;
+}
+
+/* Sin `select-none` el doble clic rápido en el teclado selecciona texto. */
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

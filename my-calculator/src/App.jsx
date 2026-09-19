@@ -1,9 +1,5 @@
-import Calculator from "./components/Calculator";
+import Calculator from "./components/Calculator.jsx";
 
 export default function App() {
-  return (
- <div className="min-h-screen w-full">
-      <Calculator />
-    </div>
-  );
+  return <Calculator />;
 }
